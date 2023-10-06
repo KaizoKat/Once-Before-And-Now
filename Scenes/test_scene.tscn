@@ -1,0 +1,254 @@
+[gd_scene load_steps=27 format=3 uid="uid://cek48ivifp7vm"]
+
+[ext_resource type="Texture2D" uid="uid://d3ugefrfosedi" path="res://Textures/Primitives/WaterOverlay.png" id="1_uty1x"]
+[ext_resource type="Texture2D" uid="uid://c6adhf2hcbq2v" path="res://Textures/Primitives/grid.png" id="1_x7uu0"]
+[ext_resource type="Script" path="res://Scripts/QMS.cs" id="2_nkc04"]
+[ext_resource type="Script" path="res://Scripts/FollowNode.cs" id="3_b26vn"]
+[ext_resource type="Script" path="res://Scripts/DungeonGenerator/DungeonCrafter.cs" id="5_gcvpm"]
+[ext_resource type="PackedScene" uid="uid://bbcl2d6qmmncb" path="res://Datasets/DungeonGen/Test Dungeon/TestData.res" id="6_w05j3"]
+
+[sub_resource type="HeightMapShape3D" id="HeightMapShape3D_hbexw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lxn4j"]
+albedo_texture = ExtResource("1_x7uu0")
+uv1_scale = Vector3(50, 50, 50)
+texture_filter = 0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_wj5p4"]
+material = SubResource("StandardMaterial3D_lxn4j")
+size = Vector2(1, 1)
+
+[sub_resource type="Environment" id="Environment_4kpjv"]
+background_mode = 1
+background_color = Color(0.462745, 0.823529, 0.921569, 1)
+ambient_light_color = Color(0.823529, 0.823529, 0.823529, 1)
+fog_light_color = Color(0.760784, 0.784314, 0.823529, 1)
+fog_density = 0.1232
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0626
+volumetric_fog_albedo = Color(0.505882, 1, 1, 1)
+volumetric_fog_detail_spread = 3.21532
+volumetric_fog_temporal_reprojection_amount = 0.692
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_3ui8w"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_fre8c"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_o767q"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7sf32"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k11nn"]
+transparency = 1
+albedo_color = Color(0.223529, 0.898039, 0.917647, 0.572549)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qim6y"]
+material = SubResource("StandardMaterial3D_k11nn")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1rm2p"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7se6s"]
+transparency = 1
+albedo_color = Color(0.498039, 1, 0.470588, 0.552941)
+
+[sub_resource type="BoxMesh" id="BoxMesh_616bg"]
+material = SubResource("StandardMaterial3D_7se6s")
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_d0aup"]
+friction = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_8plk0"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_6cwb7"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g8bsw"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_36h3k"]
+friction = 0.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_xnoba"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ddrf3"]
+
+[node name="Test Scene" type="Node3D"]
+
+[node name="Notes" type="Node" parent="."]
+metadata/Water_aand_fake_water = false
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+visible = false
+offset_right = 1152.0
+offset_bottom = 648.0
+texture = ExtResource("1_uty1x")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+editor_description = "Main directional light source
+"
+transform = Transform3D(0.392286, -0.903954, -0.17023, 0.157624, -0.116266, 0.980631, -0.906238, -0.41152, 0.0968752, 0, 20, 0)
+shadow_enabled = true
+
+[node name="Ground" type="Node3D" parent="."]
+transform = Transform3D(100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0)
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Ground"]
+gravity_scale = 0.0
+lock_rotation = true
+freeze = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground/RigidBody3D"]
+shape = SubResource("HeightMapShape3D_hbexw")
+
+[node name="Plane" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("PlaneMesh_wj5p4")
+skeleton = NodePath("../..")
+
+[node name="Player" type="Node3D" parent="." node_paths=PackedStringArray("rig", "orientation", "head", "body", "waterOverlay", "groundCast", "slopeCast", "crouchBoxCast", "waterBoxCast")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, 0)
+script = ExtResource("2_nkc04")
+maxSpeed = 20.0
+maxWaterSpeed = 10.0
+maxAirSpeed = 12.0
+maxAccel = 160.0
+clFwrdSpd = 1.0
+clSideSpd = 1.0
+sensetivity = 5.0
+rig = NodePath("Rig")
+orientation = NodePath("Rig/Orientation")
+head = NodePath("Head")
+body = NodePath("Body")
+waterOverlay = NodePath("../CanvasLayer/TextureRect")
+groundCast = NodePath("Rig/GroundRaycast")
+slopeCast = NodePath("Rig/SlopeRaycast")
+crouchBoxCast = NodePath("Rig/CrouchBoxcast")
+waterBoxCast = NodePath("Rig/WaterBoxcast")
+
+[node name="Head" type="Node3D" parent="Player" node_paths=PackedStringArray("Holder")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+rotation_order = 0
+script = ExtResource("3_b26vn")
+Holder = NodePath("../Rig/Cam Holder")
+
+[node name="Main Camera" type="Camera3D" parent="Player/Head"]
+editor_description = "main camera of the game
+"
+environment = SubResource("Environment_4kpjv")
+attributes = SubResource("CameraAttributesPractical_3ui8w")
+
+[node name="Body" type="Node3D" parent="Player" node_paths=PackedStringArray("Holder")]
+script = ExtResource("3_b26vn")
+Holder = NodePath("../Rig")
+
+[node name="Mesh" type="MeshInstance3D" parent="Player/Body"]
+mesh = SubResource("CapsuleMesh_fre8c")
+skeleton = NodePath("../../..")
+
+[node name="Rig" type="RigidBody3D" parent="Player"]
+gravity_scale = 6.0
+lock_rotation = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player/Rig"]
+shape = SubResource("CapsuleShape3D_o767q")
+
+[node name="Cam Holder" type="Node3D" parent="Player/Rig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="Orientation" type="Node3D" parent="Player/Rig"]
+
+[node name="GroundRaycast" type="RayCast3D" parent="Player/Rig"]
+target_position = Vector3(0, -1.01, 0)
+hit_from_inside = true
+debug_shape_custom_color = Color(0.815686, 0.219608, 1, 1)
+
+[node name="SlopeRaycast" type="RayCast3D" parent="Player/Rig"]
+target_position = Vector3(0, -1.5, 0)
+debug_shape_custom_color = Color(0.972549, 0.372549, 0.286275, 1)
+
+[node name="CrouchBoxcast" type="ShapeCast3D" parent="Player/Rig"]
+shape = SubResource("SphereShape3D_7sf32")
+target_position = Vector3(0, 0.5, 0)
+debug_shape_custom_color = Color(1, 0.32549, 0.431373, 1)
+
+[node name="WaterBoxcast" type="ShapeCast3D" parent="Player/Rig"]
+shape = SubResource("SphereShape3D_7sf32")
+target_position = Vector3(0, 0.5, 0)
+collision_mask = 8
+debug_shape_custom_color = Color(1, 0.32549, 0.431373, 1)
+
+[node name="Water" type="Node3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 10, -32)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Water"]
+mesh = SubResource("BoxMesh_qim6y")
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Water"]
+collision_layer = 8
+collision_mask = 8
+max_contacts_reported = 8
+lock_rotation = true
+freeze = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Water/RigidBody3D"]
+shape = SubResource("BoxShape3D_1rm2p")
+metadata/IsWater = true
+
+[node name="Fake Water" type="Node3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 10, 27)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Fake Water"]
+mesh = SubResource("BoxMesh_616bg")
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Fake Water"]
+collision_layer = 8
+collision_mask = 8
+max_contacts_reported = 8
+lock_rotation = true
+freeze = true
+metadata/IsWater = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Fake Water/RigidBody3D"]
+shape = SubResource("BoxShape3D_1rm2p")
+metadata/IsWater = false
+
+[node name="Cube" type="Node3D" parent="."]
+transform = Transform3D(8, 0, 0, 0, 1, 0, 0, 0, 3, -16, 1.90085, 0)
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Cube"]
+axis_lock_linear_x = true
+axis_lock_linear_y = true
+axis_lock_linear_z = true
+axis_lock_angular_x = true
+axis_lock_angular_y = true
+axis_lock_angular_z = true
+physics_material_override = SubResource("PhysicsMaterial_d0aup")
+max_contacts_reported = 32
+lock_rotation = true
+freeze = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Cube/RigidBody3D"]
+shape = SubResource("BoxShape3D_8plk0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Cube"]
+mesh = SubResource("BoxMesh_6cwb7")
+surface_material_override/0 = SubResource("StandardMaterial3D_g8bsw")
+
+[node name="Ramp" type="Node3D" parent="."]
+transform = Transform3D(7.82795, 0.5, 0, -4.51947, 0.866025, 0, 0, 0, 10.0402, -40.8938, 1.78454, 0)
+
+[node name="RigidBody3D" type="RigidBody3D" parent="Ramp"]
+physics_material_override = SubResource("PhysicsMaterial_36h3k")
+lock_rotation = true
+freeze = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ramp/RigidBody3D"]
+shape = SubResource("BoxShape3D_xnoba")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ramp"]
+mesh = SubResource("BoxMesh_ddrf3")
+
+[node name="TestDungeon" type="Node3D" parent="."]
+script = ExtResource("5_gcvpm")
+
+[node name="Data" parent="TestDungeon" instance=ExtResource("6_w05j3")]
