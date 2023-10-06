@@ -1,11 +1,9 @@
-[gd_scene load_steps=27 format=3 uid="uid://cek48ivifp7vm"]
+[gd_scene load_steps=25 format=3 uid="uid://cek48ivifp7vm"]
 
 [ext_resource type="Texture2D" uid="uid://d3ugefrfosedi" path="res://Textures/Primitives/WaterOverlay.png" id="1_uty1x"]
 [ext_resource type="Texture2D" uid="uid://c6adhf2hcbq2v" path="res://Textures/Primitives/grid.png" id="1_x7uu0"]
 [ext_resource type="Script" path="res://Scripts/QMS.cs" id="2_nkc04"]
 [ext_resource type="Script" path="res://Scripts/FollowNode.cs" id="3_b26vn"]
-[ext_resource type="Script" path="res://Scripts/DungeonGenerator/DungeonCrafter.cs" id="5_gcvpm"]
-[ext_resource type="PackedScene" uid="uid://bbcl2d6qmmncb" path="res://Datasets/DungeonGen/Test Dungeon/TestData.res" id="6_w05j3"]
 
 [sub_resource type="HeightMapShape3D" id="HeightMapShape3D_hbexw"]
 
@@ -247,8 +245,3 @@ shape = SubResource("BoxShape3D_xnoba")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ramp"]
 mesh = SubResource("BoxMesh_ddrf3")
-
-[node name="TestDungeon" type="Node3D" parent="."]
-script = ExtResource("5_gcvpm")
-
-[node name="Data" parent="TestDungeon" instance=ExtResource("6_w05j3")]
