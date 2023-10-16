@@ -2,14 +2,14 @@ using Godot;
 
 public partial class QMS : Node
 {
-    [Export] float maxSpeed;
-    [Export] float maxWaterSpeed;
-    [Export] float maxAirSpeed;
-    [Export] float maxAccel;
-    [Export] float clFwrdSpd;
-    [Export] float clSideSpd;
-    [Export] float jumpForce = 15;
-    [Export] float sensetivity;
+    float maxSpeed;
+    float maxWaterSpeed;
+    float maxAirSpeed = 12.0f;
+    float maxAccel;
+    float clFwrdSpd = 1.0f;
+    float clSideSpd = 1.0f;
+    float jumpForce;
+    float sensetivity = 5.0f;
 
     [Export] RigidBody3D rig;
     [Export] Node3D orientation;
@@ -24,23 +24,61 @@ public partial class QMS : Node
     float Xrot;
     float Yrot;
     bool jumped;
-    float xRot;
-    float yRot;
+    bool releaseCrouch;
     float startYscale;
-    float startMaxSpeed;
     float drag;
+    float groundDrag;
+    float waterDrag;
+    float wait0;
     Vector3 dir;
-    GodotObject oid;
+
+    public bool readyFlag = false;
+
+    public Data get_PlayerData()
+    {
+        return new Data()
+        {
+            _velocity = rig.AngularVelocity,
+            _position = body.GlobalPosition,
+            _groundDrag = groundDrag,
+            _waterDrag = waterDrag,
+            _jumpFroce = jumpForce,
+            _walkSpeed = maxSpeed,
+            _waterSpeed = maxAirSpeed
+        };
+    }
+
+    public void set_playerData(Data playerData)
+    {
+        groundDrag = playerData._groundDrag;
+        waterDrag = playerData._waterDrag;
+        jumpForce = playerData._jumpFroce;
+        maxSpeed = playerData._walkSpeed;
+        maxWaterSpeed = playerData._walkSpeed;
+    }
+
+    public void set_defaults()
+    {
+        maxSpeed = 20.0f;
+        maxWaterSpeed = 10.0f;
+        maxAccel = maxSpeed * 10;
+        jumpForce = 15.0f;
+        groundDrag = 6.0f;
+        waterDrag = 8.0f;
+    }
 
     public override void _Ready()
     {
+        set_defaults();
         startYscale = rig.Scale.Y;
-        startMaxSpeed = maxSpeed;
-    }
 
+        readyFlag = true;
+    }
     public override void _PhysicsProcess(double delta)
     {
         base._PhysicsProcess(delta);
+
+        maxAccel = maxSpeed * 10;
 
         if (!phy_Sloped()) dir = fun_CalculateWishDir();
         else dir = phy_GetSlopeDir();
@@ -51,7 +89,6 @@ public partial class QMS : Node
 
         Input.MouseMode = Input.MouseModeEnum.Captured;
     }
-
     public override void _Input(InputEvent @event)
     {
         base._Input(@event);
@@ -69,9 +106,8 @@ public partial class QMS : Node
 
     void fun_DragCalculations()
     {
-        if (phy_Grounded()) drag = 5;
-        else if (phy_Sloped()) drag = 6;
-        else if (waterBoxCast.IsColliding()) drag = 8;
+        if (phy_Grounded() || phy_Sloped()) drag = groundDrag;
+        else if (waterBoxCast.IsColliding()) drag = waterDrag;
         else drag = 0;
 
         if (waterBoxCast.IsColliding() || phy_Sloped())
@@ -79,7 +115,6 @@ public partial class QMS : Node
         else 
             rig.GravityScale = 6;
     }
-
     void fun_UpdateVelocity(double frame)
     {
         if (phy_Grounded() || phy_Sloped() && !waterBoxCast.IsColliding())
@@ -92,8 +127,6 @@ public partial class QMS : Node
         phy_Jump(frame);
         phy_Crouch(frame);
     }
-
-    float wait0;
     void phy_Jump(double frame)
     {
         if (Input.IsActionPressed("Jump") && jumped == false && !waterBoxCast.IsColliding())
@@ -128,8 +161,6 @@ public partial class QMS : Node
 
         rig.ForceUpdateTransform();
     }
-
-    bool releaseCrouch;
     void phy_Crouch(double frame)
     {
         if (!waterBoxCast.IsColliding())
@@ -138,7 +169,7 @@ public partial class QMS : Node
             {
                 body.Scale = new Vector3(body.Scale.X, 0.65f, body.Scale.Z);
                 rig.GetChild<CollisionShape3D>(0).Scale = body.Scale;
-                maxSpeed = startMaxSpeed / 3;
+                maxSpeed = 6.6f;
             }
         }
         else
@@ -157,14 +188,13 @@ public partial class QMS : Node
     {
         body.Scale = new Vector3(body.Scale.X, startYscale, body.Scale.X);
         rig.GetChild<CollisionShape3D>(0).Scale = body.Scale;
-        maxSpeed = startMaxSpeed;
+        set_defaults();
 
         if (phy_Grounded())
             rig.ApplyCentralForce(Vector3.Down * jumpForce * 2);
 
         releaseCrouch = false;
     }
-
     void fun_CalculateFrinction(ref Vector3 vel, float dt)
     {
         float spd = vel.Length();
@@ -178,16 +208,16 @@ public partial class QMS : Node
 
         vel *= dampAmmount / spd;
     }
-
     void fun_WaterOverlay()
     {
         if (waterBoxCast.IsColliding())
-            oid = waterBoxCast.GetCollider(0);
-
-        if (waterBoxCast.IsColliding())// && oid.GetMetaList())
             waterOverlay.Visible = true;
         else
             waterOverlay.Visible = false;
+    }
+    public void fun_KillMe()
+    {
+        GetTree().ReloadCurrentScene();
     }
 
     Vector3 fun_CalculateWishDir()
@@ -196,7 +226,6 @@ public partial class QMS : Node
 
         return (-orientation.Transform.Basis.Z * dirc.X * clFwrdSpd + orientation.Transform.Basis.X * dirc.Y * clSideSpd).Normalized();
     }
-
     Vector3 phy_UpdateVelGround(Vector3 wishDir, Vector3 vel, double frame)
     {
         fun_CalculateFrinction(ref vel, (float)frame);
@@ -228,7 +257,6 @@ public partial class QMS : Node
     {
         return groundCast.IsColliding();
     }
-
     bool phy_Sloped()
     {
         if(slopeCast.IsColliding())
@@ -239,12 +267,10 @@ public partial class QMS : Node
 
         return false;
     }
-
     Vector3 phy_GetSlopeDir()
     {
         return ProjectOnPlane(fun_CalculateWishDir(), slopeCast.GetCollisionNormal()).Normalized();
     }
-
     static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
     {
         float num = planeNormal.Dot(planeNormal);
@@ -258,5 +284,17 @@ public partial class QMS : Node
             vector.X - planeNormal.X * num2 / num, 
             vector.Y - planeNormal.Y * num2 / num, 
             vector.Z - planeNormal.Z * num2 / num);
+    }
+
+    public struct Data
+    {
+        public Vector3 _position;
+        public Vector3 _velocity;
+        public float _groundDrag;
+        public float _waterDrag;
+        public float _jumpFroce;
+        public float _waterSpeed;
+        public float _walkSpeed;
+
     }
 }

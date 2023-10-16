@@ -1,9 +1,16 @@
-[gd_scene load_steps=25 format=3 uid="uid://cek48ivifp7vm"]
+[gd_scene load_steps=36 format=3 uid="uid://cek48ivifp7vm"]
 
 [ext_resource type="Texture2D" uid="uid://d3ugefrfosedi" path="res://Textures/Primitives/WaterOverlay.png" id="1_uty1x"]
 [ext_resource type="Texture2D" uid="uid://c6adhf2hcbq2v" path="res://Textures/Primitives/grid.png" id="1_x7uu0"]
-[ext_resource type="Script" path="res://Scripts/QMS.cs" id="2_nkc04"]
-[ext_resource type="Script" path="res://Scripts/FollowNode.cs" id="3_b26vn"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/Movement/QMS.cs" id="3_ibomk"]
+[ext_resource type="Script" path="res://Scripts/Miscelaneous/FollowNode.cs" id="4_n6uqu"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/PlayerActionSystem.cs" id="5_157mp"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/PlayerData.cs" id="5_fsa2h"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/PlayerActions.cs" id="6_81tsv"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/DataRef.cs" id="7_07oii"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/Movement/EQMS.cs" id="8_51lki"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/EntityData.cs" id="9_vxjfh"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/EntityActionSystem.cs" id="10_pl2o6"]
 
 [sub_resource type="HeightMapShape3D" id="HeightMapShape3D_hbexw"]
 
@@ -35,6 +42,16 @@ volumetric_fog_temporal_reprojection_amount = 0.692
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_o767q"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_7sf32"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4nvbd"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_bjoej"]
+material = SubResource("StandardMaterial3D_4nvbd")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_mjnbe"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_45skg"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k11nn"]
 transparency = 1
@@ -104,76 +121,167 @@ mesh = SubResource("PlaneMesh_wj5p4")
 skeleton = NodePath("../..")
 
 [node name="Player" type="Node3D" parent="." node_paths=PackedStringArray("rig", "orientation", "head", "body", "waterOverlay", "groundCast", "slopeCast", "crouchBoxCast", "waterBoxCast")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, 0)
-script = ExtResource("2_nkc04")
-maxSpeed = 20.0
-maxWaterSpeed = 10.0
-maxAirSpeed = 12.0
-maxAccel = 160.0
-clFwrdSpd = 1.0
-clSideSpd = 1.0
-sensetivity = 5.0
-rig = NodePath("Rig")
-orientation = NodePath("Rig/Orientation")
-head = NodePath("Head")
-body = NodePath("Body")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 1, 0)
+script = ExtResource("3_ibomk")
+rig = NodePath("QMS/Rig")
+orientation = NodePath("QMS/Rig/Orientation")
+head = NodePath("QMS/Head")
+body = NodePath("QMS/Body")
 waterOverlay = NodePath("../CanvasLayer/TextureRect")
-groundCast = NodePath("Rig/GroundRaycast")
-slopeCast = NodePath("Rig/SlopeRaycast")
-crouchBoxCast = NodePath("Rig/CrouchBoxcast")
-waterBoxCast = NodePath("Rig/WaterBoxcast")
+groundCast = NodePath("QMS/Rig/GroundRaycast")
+slopeCast = NodePath("QMS/Rig/SlopeRaycast")
+crouchBoxCast = NodePath("QMS/Rig/CrouchBoxcast")
+waterBoxCast = NodePath("QMS/Rig/WaterBoxcast")
 
-[node name="Head" type="Node3D" parent="Player" node_paths=PackedStringArray("Holder")]
+[node name="PlayerData" type="Node3D" parent="Player" node_paths=PackedStringArray("PlayerQMS")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("5_fsa2h")
+PlayerQMS = NodePath("..")
+
+[node name="PlayerActionSystem" type="Node3D" parent="Player" node_paths=PackedStringArray("playerData", "PlayerQMS", "actionRay")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("5_157mp")
+playerData = NodePath("../PlayerData")
+PlayerQMS = NodePath("..")
+actionRay = NodePath("../QMS/Head/ActionRay")
+
+[node name="PlayerActionator" type="Node3D" parent="Player" node_paths=PackedStringArray("pacs")]
+script = ExtResource("6_81tsv")
+pacs = NodePath("../PlayerActionSystem")
+
+[node name="QMS" type="Node3D" parent="Player"]
+
+[node name="Head" type="Node3D" parent="Player/QMS" node_paths=PackedStringArray("Holder")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 rotation_order = 0
-script = ExtResource("3_b26vn")
+script = ExtResource("4_n6uqu")
 Holder = NodePath("../Rig/Cam Holder")
 
-[node name="Main Camera" type="Camera3D" parent="Player/Head"]
+[node name="Main Camera" type="Camera3D" parent="Player/QMS/Head"]
 editor_description = "main camera of the game
 "
 environment = SubResource("Environment_4kpjv")
 attributes = SubResource("CameraAttributesPractical_3ui8w")
 
-[node name="Body" type="Node3D" parent="Player" node_paths=PackedStringArray("Holder")]
-script = ExtResource("3_b26vn")
+[node name="ActionRay" type="RayCast3D" parent="Player/QMS/Head"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+target_position = Vector3(0, 0, 1000)
+debug_shape_custom_color = Color(0.890196, 0.921569, 0, 1)
+debug_shape_thickness = 1
+
+[node name="Body" type="Node3D" parent="Player/QMS" node_paths=PackedStringArray("Holder")]
+script = ExtResource("4_n6uqu")
 Holder = NodePath("../Rig")
 
-[node name="Mesh" type="MeshInstance3D" parent="Player/Body"]
+[node name="Mesh" type="MeshInstance3D" parent="Player/QMS/Body"]
 mesh = SubResource("CapsuleMesh_fre8c")
-skeleton = NodePath("../../..")
+skeleton = NodePath("../../../..")
 
-[node name="Rig" type="RigidBody3D" parent="Player"]
+[node name="Rig" type="RigidBody3D" parent="Player/QMS"]
 gravity_scale = 6.0
 lock_rotation = true
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Player/Rig"]
+[node name="Collider" type="CollisionShape3D" parent="Player/QMS/Rig" node_paths=PackedStringArray("conPlayerData", "conRig")]
 shape = SubResource("CapsuleShape3D_o767q")
+script = ExtResource("7_07oii")
+conPlayerData = NodePath("../../../PlayerData")
+conRig = NodePath("..")
 
-[node name="Cam Holder" type="Node3D" parent="Player/Rig"]
+[node name="Cam Holder" type="Node3D" parent="Player/QMS/Rig"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
-[node name="Orientation" type="Node3D" parent="Player/Rig"]
+[node name="Orientation" type="Node3D" parent="Player/QMS/Rig"]
 
-[node name="GroundRaycast" type="RayCast3D" parent="Player/Rig"]
+[node name="GroundRaycast" type="RayCast3D" parent="Player/QMS/Rig"]
 target_position = Vector3(0, -1.01, 0)
 hit_from_inside = true
 debug_shape_custom_color = Color(0.815686, 0.219608, 1, 1)
 
-[node name="SlopeRaycast" type="RayCast3D" parent="Player/Rig"]
+[node name="SlopeRaycast" type="RayCast3D" parent="Player/QMS/Rig"]
 target_position = Vector3(0, -1.5, 0)
 debug_shape_custom_color = Color(0.972549, 0.372549, 0.286275, 1)
 
-[node name="CrouchBoxcast" type="ShapeCast3D" parent="Player/Rig"]
+[node name="CrouchBoxcast" type="ShapeCast3D" parent="Player/QMS/Rig"]
 shape = SubResource("SphereShape3D_7sf32")
 target_position = Vector3(0, 0.5, 0)
 debug_shape_custom_color = Color(1, 0.32549, 0.431373, 1)
 
-[node name="WaterBoxcast" type="ShapeCast3D" parent="Player/Rig"]
+[node name="WaterBoxcast" type="ShapeCast3D" parent="Player/QMS/Rig"]
 shape = SubResource("SphereShape3D_7sf32")
 target_position = Vector3(0, 0.5, 0)
 collision_mask = 8
 debug_shape_custom_color = Color(1, 0.32549, 0.431373, 1)
+
+[node name="Entity" type="Node3D" parent="." node_paths=PackedStringArray("rig", "orientation", "head", "body", "groundCast", "slopeCast", "waterBoxCast")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, -12)
+script = ExtResource("8_51lki")
+rig = NodePath("EQMS/Rig")
+orientation = NodePath("EQMS/Rig/Orientation")
+head = NodePath("EQMS/Head")
+body = NodePath("EQMS/Body")
+groundCast = NodePath("EQMS/Rig/GroundRaycast")
+slopeCast = NodePath("EQMS/Rig/SlopeRaycast")
+waterBoxCast = NodePath("EQMS/Rig/WaterBoxcast")
+
+[node name="EntiyData" type="Node3D" parent="Entity" node_paths=PackedStringArray("EntityQMS")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("9_vxjfh")
+EntityQMS = NodePath("..")
+
+[node name="EntityActionSystem" type="Node3D" parent="Entity" node_paths=PackedStringArray("entityData", "EntityQMS")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("10_pl2o6")
+entityData = NodePath("../EntiyData")
+EntityQMS = NodePath("..")
+
+[node name="EQMS" type="Node3D" parent="Entity"]
+
+[node name="Head" type="Node3D" parent="Entity/EQMS" node_paths=PackedStringArray("Holder")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("4_n6uqu")
+Holder = NodePath("../Rig/HeadHolder")
+
+[node name="ActionRay" type="RayCast3D" parent="Entity/EQMS/Head"]
+target_position = Vector3(0, 0, 1000)
+debug_shape_custom_color = Color(0.858824, 0.52549, 0.0862745, 0.0196078)
+
+[node name="Body" type="Node3D" parent="Entity/EQMS" node_paths=PackedStringArray("Holder")]
+script = ExtResource("4_n6uqu")
+Holder = NodePath("../Rig")
+
+[node name="Mesh" type="MeshInstance3D" parent="Entity/EQMS/Body"]
+mesh = SubResource("CapsuleMesh_bjoej")
+skeleton = NodePath("../../../..")
+
+[node name="Rig" type="RigidBody3D" parent="Entity/EQMS"]
+gravity_scale = 6.0
+lock_rotation = true
+
+[node name="Collider" type="CollisionShape3D" parent="Entity/EQMS/Rig" node_paths=PackedStringArray("conEntityData", "conRig")]
+shape = SubResource("CapsuleShape3D_mjnbe")
+script = ExtResource("7_07oii")
+conEntityData = NodePath("../../../EntiyData")
+conRig = NodePath("..")
+
+[node name="Orientation" type="Node3D" parent="Entity/EQMS/Rig"]
+
+[node name="GroundRaycast" type="RayCast3D" parent="Entity/EQMS/Rig"]
+target_position = Vector3(0, -1.01, 0)
+hit_from_inside = true
+debug_shape_custom_color = Color(0.815686, 0.219608, 1, 1)
+
+[node name="SlopeRaycast" type="RayCast3D" parent="Entity/EQMS/Rig"]
+target_position = Vector3(0, -1.5, 0)
+debug_shape_custom_color = Color(0.972549, 0.372549, 0.286275, 1)
+
+[node name="WaterBoxcast" type="ShapeCast3D" parent="Entity/EQMS/Rig"]
+shape = SubResource("SphereShape3D_45skg")
+target_position = Vector3(0, 0.5, 0)
+collision_mask = 8
+debug_shape_custom_color = Color(1, 0.32549, 0.431373, 1)
+
+[node name="HeadHolder" type="Node3D" parent="Entity/EQMS/Rig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
 [node name="Water" type="Node3D" parent="."]
 transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 10, -32)

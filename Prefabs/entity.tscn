@@ -1,0 +1,75 @@
+[gd_scene load_steps=10 format=3 uid="uid://b5g8bns6v5d30"]
+
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/Movement/EQMS.cs" id="1_ccxyk"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/EntityData.cs" id="2_1ry52"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/EntityActionSystem.cs" id="3_6nc16"]
+[ext_resource type="Script" path="res://Scripts/Miscelaneous/FollowNode.cs" id="4_i636k"]
+[ext_resource type="Script" path="res://Scripts/PlayerSystems/DammageSystem/DataRef.cs" id="5_gyvs3"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4nvbd"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_bjoej"]
+material = SubResource("StandardMaterial3D_4nvbd")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_o767q"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_7sf32"]
+
+[node name="Entity" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, -12)
+script = ExtResource("1_ccxyk")
+
+[node name="EntiyData" type="Node3D" parent="." node_paths=PackedStringArray("EntityQMS")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("2_1ry52")
+EntityQMS = NodePath("")
+
+[node name="EntityActionSystem" type="Node3D" parent="." node_paths=PackedStringArray("entityData", "EntityQMS")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+script = ExtResource("3_6nc16")
+entityData = NodePath("")
+EntityQMS = NodePath("")
+
+[node name="EQMS" type="Node3D" parent="."]
+
+[node name="Head" type="Node3D" parent="EQMS"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.410341, 0)
+
+[node name="ActionRay" type="RayCast3D" parent="EQMS/Head"]
+target_position = Vector3(0, 0, 1000)
+debug_shape_custom_color = Color(0.858824, 0.52549, 0.0862745, 0.0196078)
+
+[node name="Body" type="Node3D" parent="EQMS" node_paths=PackedStringArray("Holder")]
+script = ExtResource("4_i636k")
+Holder = NodePath("")
+
+[node name="Mesh" type="MeshInstance3D" parent="EQMS/Body"]
+mesh = SubResource("CapsuleMesh_bjoej")
+skeleton = NodePath("../../../..")
+
+[node name="Rig" type="RigidBody3D" parent="EQMS" node_paths=PackedStringArray("conEntityData")]
+gravity_scale = 6.0
+lock_rotation = true
+script = ExtResource("5_gyvs3")
+conEntityData = NodePath("")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EQMS/Rig"]
+shape = SubResource("CapsuleShape3D_o767q")
+
+[node name="Orientation" type="Node3D" parent="EQMS/Rig"]
+
+[node name="GroundRaycast" type="RayCast3D" parent="EQMS/Rig"]
+target_position = Vector3(0, -1.01, 0)
+hit_from_inside = true
+debug_shape_custom_color = Color(0.815686, 0.219608, 1, 1)
+
+[node name="SlopeRaycast" type="RayCast3D" parent="EQMS/Rig"]
+target_position = Vector3(0, -1.5, 0)
+debug_shape_custom_color = Color(0.972549, 0.372549, 0.286275, 1)
+
+[node name="WaterBoxcast" type="ShapeCast3D" parent="EQMS/Rig"]
+shape = SubResource("SphereShape3D_7sf32")
+target_position = Vector3(0, 0.5, 0)
+collision_mask = 8
+debug_shape_custom_color = Color(1, 0.32549, 0.431373, 1)
